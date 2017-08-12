@@ -160,7 +160,7 @@ class Database(object):
             self.general.logger(
                 0,
                 self.__class__.__name__,
-                self.update_handler.__name__,
+                self.select_handler.__name__,
                 'error="' + str(error) + '"'
             )
 

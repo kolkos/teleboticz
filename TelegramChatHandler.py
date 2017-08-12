@@ -63,20 +63,61 @@ import re
 import random
 import telepot
 import telepot.helper
+import time
 from telepot.namedtuple import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 import emoji
-from General import General
+from Telegram import Telegram
 from Domoticz import Domoticz
 
-class TelegramChatHandler(telepot.helper.ChatHandler):
+
+class TelegramChatHandler(telepot.helper.ChatHandler, Telegram):
     """
     TelegramChatHandler class
     """
     def __init__(self, *args, **kwargs):
         super(TelegramChatHandler, self).__init__(*args, **kwargs)
-        self.general = General()
         self.domoticz = Domoticz()
         self.message_with_inline_keyboard = None
         return
+
+    def on_chat_message(self, msg):
+        """
+        this method is called when the bot receives a chat message.
+        this happens when you click on a suggested command
+        :param msg: the incoming chat message
+        """
+        log_string = 'action="Method called", msg="{}"'.format(str(msg))
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.on_chat_message.__name__,
+            log_string
+        )
+        start_time = time.time()
+
+        # get info from the incoming message
+        content_type, chat_type, chat_id = telepot.glance(msg)
+
+        # if the message isn't text, quit this method
+        if content_type != 'text':
+            return
+
+        # register the user if needed
+        user_id = msg['from']['id']
+        user_name = msg['from']['username']
+        first_name = msg['from']['first_name']
+        last_name = msg['from']['last_name']
+
+        self.register_user(user_id,user_name, first_name, last_name)
+
+        command = msg['text'].lower()
+
+        # now register the incoming call
+        query = "INSERT INTO chat_messages (chat_id, user_id, content_type, chat_type, message) "\
+              + "VALUES (?, ?, ?, ?, ?)"
+        values = [(chat_id, user_id, content_type, chat_type, command)]
+        self.database.update_handler(query, values)
+
+

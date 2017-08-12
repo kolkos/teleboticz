@@ -26,6 +26,7 @@ Changes:              - First draft
 import sys
 import os
 import time
+import datetime
 from General import General
 from Database import Database
 from TelegramInlineQueryHandler import TelegramInlineQueryHandler
@@ -51,6 +52,28 @@ class TelegramBotListener(object):
         self.database = Database()
         self.pid_file = self.general.fix_real_path(sys.argv[0] + ".pid")
         self.bot = object
+        self.running = self.check_running()
+        if not self.running:
+            try:
+                # start the bot
+                self.start_bot()
+                self.update_pid()
+                while 1:
+                    # update the pid file every 10 seconds
+                    self.general.logger(
+                        3,
+                        self.__class__.__name__,
+                        self.__init__.__name__,
+                        'action="bot is (still) running", time={}'.format(str(datetime.datetime.now())))
+                    time.sleep(30)
+                    self.update_pid()
+            finally:
+                # remove the pid file
+                os.unlink(self.pid_file)
+        else:
+            # pid file does exist, don't start
+            print "Bot seems to be running. Exiting"
+            sys.exit(0)
 
     def template_method(self):
         self.general.logger(
@@ -115,9 +138,9 @@ class TelegramBotListener(object):
                 running = True
             else:
                 # the file is older than 60 seconds, so the bot is recently stopped
-                message = "The pid file '{1}' exists, but seems to be old. "
+                message = "The pid file '{0}' exists, but seems to be old. "
                 message += "This probably means the Bot isn't running.\n"
-                message += "Removing the file '{1}'..\n\n"
+                message += "Removing the file '{0}'..\n\n"
                 message += "After removing the pid file the bot can be started."
                 print message.format(self.pid_file)
                 os.unlink(self.pid_file)
@@ -197,5 +220,12 @@ class TelegramBotListener(object):
             'action="bot started"')
         print 'Listening ...'
 
-bot = TelegramBotListener()
-bot.check_running()
+    def update_pid(self):
+        """
+        Method to update the pid file (and write the current pid to the file)
+        """
+        pid = str(os.getpid())
+        pid_file = open(self.pid_file, 'w')
+        pid_file.write(pid)
+        pid_file.close()
+        return
