@@ -1,13 +1,11 @@
 """
-File:                 TelegramBotListener.py
+File:                 Teleboticz.py
 
-This file contains the Listener Class for the Telegram Bot (Teleboticz).
-The listener is responsible for getting all the telegram requests and
-registering them in the database. The Handler class will handle the
-requests. This is another class.
+This file contains the the main Teleboticz Class. It is responsible
+for creating the Telegram Bot.
 
 class:
-    TelegramBotListener -- resposible for creating the Listener
+    Teleboticz -- resposible for creating the bot
 
     methods:
         __init__
@@ -29,8 +27,6 @@ import time
 import datetime
 from General import General
 from Database import Database
-from TelegramInlineQueryHandler import TelegramInlineQueryHandler
-from TelegramChatHandler import TelegramChatHandler
 import telepot
 import telepot.helper
 from telepot.loop import MessageLoop
@@ -42,10 +38,12 @@ from telepot.delegate import (
     intercept_callback_query_origin,
     include_callback_query_chat_id
 )
+import TelegramChatHandler
+import TelegramInlineQueryHandler
 
-class TelegramBotListener(object):
+class Teleboticz(object):
     """
-    The TelegramBotListener class, see description above.
+    The Teleboticz class, see description above.
     """
     def __init__(self):
         self.general = General()
@@ -76,6 +74,9 @@ class TelegramBotListener(object):
             sys.exit(0)
 
     def template_method(self):
+        """
+        Template method
+        """
         self.general.logger(
             3,
             self.__class__.__name__,
@@ -97,7 +98,6 @@ class TelegramBotListener(object):
             self.template_method.__name__,
             log_string
         )
-
 
     def check_running(self):
         """
@@ -194,7 +194,7 @@ class TelegramBotListener(object):
             (
                 per_inline_from_id(),
                 create_open,
-                TelegramInlineQueryHandler,
+                TelegramInlineQueryHandler.TelegramInlineQueryHandler,
                 timeout=30
             ),
             include_callback_query_chat_id(
@@ -205,7 +205,7 @@ class TelegramBotListener(object):
                     types=['private']
                 ),
                 create_open,
-                TelegramChatHandler,
+                TelegramChatHandler.TelegramChatHandler,
                 timeout=30
             ),
         ])
@@ -229,3 +229,4 @@ class TelegramBotListener(object):
         pid_file.write(pid)
         pid_file.close()
         return
+

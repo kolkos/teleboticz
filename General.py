@@ -41,8 +41,10 @@ class General(object):
     def __init__(self):
         self.config = {}
         self.config_file = self.fix_real_path('config.ini')
+        self.translation_file = self.fix_real_path('translation.ini')
         self.log_file = self.fix_real_path(sys.argv[0] + ".log")
         self.load_config()
+        self.load_translation()
 
     @staticmethod
     def fix_real_path(file_name):
@@ -133,3 +135,62 @@ class General(object):
                 print error
 
         return
+
+    def load_translation(self):
+        """
+        Method to load the translation from the translation file
+        :returns: nothing
+        """
+        
+        config = ConfigParser.ConfigParser()
+        config.optionxform = str
+        config.read(self.translation_file)
+
+        self.translation = {}
+        self.translation = dict(config.items(self.config.get('Teleboticz', 'language')))
+        return
+
+    def translate_text(self, translation_key, variables=None):
+        """
+        This method handles the translation
+
+        The first argument is the key that is used to store the translation in the ini file
+        the second argument is an dictionary, by default this dictionary isn't set
+        the keys in the dictionary must be the same as the placeholders in the translation.
+        for example:
+          the translation 'error_unknown_command =
+           I'm sorry, I don't know how to do '{-COMMAND-}' on {-DEVICE-}'
+           contains two placeholders ({-COMMAND-} and {-DEVICE-})
+           so the dictionary should have the key {-COMMAND-} with the new value as value
+
+        :param translation_key: the key which is used to register the translation in the
+        translation file
+        :param variables: a dictionary of keys and values used in the text
+        :returns: the translate text
+        """
+
+        log_string = 'translation_key="{}", variables="{}"'.format(
+            translation_key,
+            str(variables)
+        )
+        self.logger(
+            3,
+            self.__class__.__name__,
+            self.translate_text.__name__,
+            log_string
+        )
+
+        # load initial text
+        initial_text = self.translation[translation_key]
+
+        # set the new text
+        new_text = initial_text
+
+        # now check if the varibales dictionary is set
+        if variables:
+            # the keys in the variables dictionary should be the same as the
+            # placeholders in the translation sentence
+            for key in variables:
+                new_text = new_text.replace(key, variables[key])
+
+        return new_text

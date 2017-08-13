@@ -1,2 +1,2 @@
-from TelegramBotListener import TelegramBotListener
-bot = TelegramBotListener()
+from Teleboticz import Teleboticz
+bot = Teleboticz()

@@ -68,20 +68,21 @@ from telepot.namedtuple import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 import emoji
-from Telegram import Telegram
 from Domoticz import Domoticz
+from General import General
+from TeleboticzGeneral import TeleboticzGeneral
 
-
-class TelegramChatHandler(telepot.helper.ChatHandler, Telegram):
+class TelegramChatHandler(telepot.helper.ChatHandler, TeleboticzGeneral):
     """
     TelegramChatHandler class
     """
     def __init__(self, *args, **kwargs):
         super(TelegramChatHandler, self).__init__(*args, **kwargs)
         self.domoticz = Domoticz()
+        self.general = General()
         self.message_with_inline_keyboard = None
         return
-
+   
     def on_chat_message(self, msg):
         """
         this method is called when the bot receives a chat message.
@@ -110,14 +111,26 @@ class TelegramChatHandler(telepot.helper.ChatHandler, Telegram):
         first_name = msg['from']['first_name']
         last_name = msg['from']['last_name']
 
-        self.register_user(user_id,user_name, first_name, last_name)
+        self.register_user(user_id, user_name, first_name, last_name)
 
         command = msg['text'].lower()
 
         # now register the incoming call
-        query = "INSERT INTO chat_messages (chat_id, user_id, content_type, chat_type, message) "\
+        query = "INSERT INTO telegram_chat_messages (chat_id, user_id, content_type, chat_type, message) "\
               + "VALUES (?, ?, ?, ?, ?)"
         values = [(chat_id, user_id, content_type, chat_type, command)]
         self.database.update_handler(query, values)
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}"'.format(
+            execution_time,
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.on_chat_message.__name__,
+            log_string
+        )
+        return
 
 
