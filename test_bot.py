@@ -1,2 +1,2 @@
-from Teleboticz import Teleboticz
+from PythonClasses.Teleboticz import Teleboticz
 bot = Teleboticz()

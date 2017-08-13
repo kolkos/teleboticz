@@ -15,6 +15,11 @@ for ext in extensions:
         print "delete file: {}".format(file)
         os.unlink(file)
 
+for ext in extensions:
+    for file in glob.glob('./PythonClasses/' + ext):
+        print "delete file: {}".format(file)
+        os.unlink(file)
+
 # clean database junk
 query_callback_queries = "DELETE FROM telegram_callback_queries"
 query_received_chat_messages = "DELETE FROM telegram_chat_messages"

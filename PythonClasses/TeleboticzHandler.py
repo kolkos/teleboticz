@@ -344,5 +344,4 @@ class TeleboticzHandler(object):
             print json.dumps(kwargs, sort_keys=True, indent=4)
 
     def determine_callback_method(self, **kwargs):
-
-
+        return

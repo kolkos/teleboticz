@@ -1,4 +1,6 @@
-from TeleboticzHandler import TeleboticzHandler
+from PythonClasses.TeleboticzHandler import TeleboticzHandler
+
+
 handler = TeleboticzHandler()
 
 #handler.handle_chat_messages()

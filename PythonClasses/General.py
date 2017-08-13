@@ -41,8 +41,8 @@ class General(object):
 
     def __init__(self):
         self.config = {}
-        self.config_file = self.fix_real_path('config.ini')
-        self.translation_file = self.fix_real_path('translation.ini')
+        self.config_file = self.fix_real_path('../Config/config.ini')
+        self.translation_file = self.fix_real_path('../Config/translation.ini')
         self.log_file = self.fix_real_path(sys.argv[0] + ".log")
         self.load_config()
         self.load_translation()

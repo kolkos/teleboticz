@@ -5,7 +5,7 @@ Test database functions
 import random
 import string
 from datetime import datetime
-from Database import Database
+from PythonClasses.Database import Database
 
 db = Database()
 
