@@ -64,6 +64,7 @@ import random
 import telepot
 import telepot.helper
 import time
+import json
 from telepot.namedtuple import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
@@ -133,4 +134,45 @@ class TelegramChatHandler(telepot.helper.ChatHandler, TeleboticzGeneral):
         )
         return
 
+    def on_callback_query(self, msg):
+        """
+        This method is called when a button is pushed. This method will perform a
+        series of checks and forward the callback to the right method.
+        :param msg: the incoming query
+        """
 
+        log_string = 'action="Method called", msg="{}"'.format(str(msg))
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.on_callback_query.__name__,
+            log_string
+        )
+        start_time = time.time()
+
+        print json.dumps(msg, sort_keys=True, indent=4)
+
+        # get the required information
+        query_id = msg["id"]
+        msg_id = msg["message"]["message_id"]
+        user_id = msg["from"]["id"]
+        data = msg["data"]
+        
+        # insert data into database
+        query = "INSERT INTO telegram_callback_queries "\
+              + "(query_id, msg_id, user_id, data) "\
+              + "VALUES (?, ?, ?, ?)"
+        values = [(query_id, msg_id, user_id, data)]
+        self.database.update_handler(query, values)
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}"'.format(
+            execution_time,
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.on_callback_query.__name__,
+            log_string
+        )
+        return

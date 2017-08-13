@@ -32,6 +32,7 @@ import os
 import io
 import sys
 from datetime import datetime
+import time
 
 class General(object):
     """
@@ -141,13 +142,33 @@ class General(object):
         Method to load the translation from the translation file
         :returns: nothing
         """
-        
+        log_string = 'action="method called"'
+        self.logger(
+            3,
+            self.__class__.__name__,
+            self.load_translation.__name__,
+            log_string
+        )
+        start_time = time.time()
+
         config = ConfigParser.ConfigParser()
         config.optionxform = str
         config.read(self.translation_file)
 
         self.translation = {}
         self.translation = dict(config.items(self.config.get('Teleboticz', 'language')))
+        
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}"'.format(
+            execution_time,
+        )
+        self.logger(
+            3,
+            self.__class__.__name__,
+            self.translate_text.__name__,
+            log_string
+        )
+
         return
 
     def translate_text(self, translation_key, variables=None):
@@ -169,7 +190,7 @@ class General(object):
         :returns: the translate text
         """
 
-        log_string = 'translation_key="{}", variables="{}"'.format(
+        log_string = 'action="method called", translation_key="{}", variables="{}"'.format(
             translation_key,
             str(variables)
         )
@@ -179,6 +200,7 @@ class General(object):
             self.translate_text.__name__,
             log_string
         )
+        start_time = time.time()
 
         # load initial text
         initial_text = self.translation[translation_key]
@@ -193,4 +215,48 @@ class General(object):
             for key in variables:
                 new_text = new_text.replace(key, variables[key])
 
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}", new_text={}'.format(
+            execution_time,
+            new_text
+        )
+        self.logger(
+            3,
+            self.__class__.__name__,
+            self.translate_text.__name__,
+            log_string
+        )
+
         return new_text
+
+    def build_menu(self, buttons, n_cols):
+        """
+        This method builds a menu with the found buttons
+        :param buttons: buttons: a list containing the buttons for telegram
+        :param n_cols: n_cols: the number of columns
+        :returns: a rearranged buttons group (menu)
+        """
+        log_string = 'action="method called", buttons={}, n_cols={}'.format(str(buttons), n_cols)
+        self.logger(
+            3,
+            self.__class__.__name__,
+            self.build_menu.__name__,
+            log_string
+        )
+        start_time = time.time()
+
+        menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}", menu={}'.format(
+            execution_time,
+            menu
+        )
+        self.logger(
+            3,
+            self.__class__.__name__,
+            self.build_menu.__name__,
+            log_string
+        )
+
+        return menu

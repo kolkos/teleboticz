@@ -1,7 +1,13 @@
+"""
+Please be carefull when calling this script, it will delete all temporary data.
+Also it will clean the database.
+"""
+
 import glob
 import os
 import sqlite3
 
+# clean the temp files
 extensions = ('*.pyc', '*.log', '*.pid')
 
 for ext in extensions:

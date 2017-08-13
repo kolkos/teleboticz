@@ -8,6 +8,9 @@ import time
 import telepot
 from General import General
 from Database import Database
+from telepot.namedtuple import (
+    InlineKeyboardMarkup, InlineKeyboardButton
+)
 
 class TeleboticzGeneral(object):
     """
@@ -16,7 +19,7 @@ class TeleboticzGeneral(object):
     def __init__(self):
         self.general = General()
         self.database = Database()
-        self.send_bot = object
+        self.send_bot = telepot.Bot(self.general.config.get("Telegram", "api_key"))
 
     def check_user_blacklist(self, user_id):
         """
@@ -104,8 +107,6 @@ class TeleboticzGeneral(object):
         )
         start_time = time.time()
 
-        self.send_bot = telepot.Bot(self.general.config.get("Telegram", "api_key"))
-
         # split the chat ids
         chat_id_array = chat_ids.split(',')
 
@@ -139,3 +140,72 @@ class TeleboticzGeneral(object):
             self.send_chat_message.__name__,
             log_string
         )
+
+    def send_buttons(self, chat_id, message, button_list, overwrite_keyboard_id=None):
+        """
+        Method to send the generate button list to the
+        user. All required fields are set/generated in the
+        on_chat_message method
+        :param chat_id: the id from the client which send the message
+        :param message: the send message
+        :param button_list: the button list to send
+        """
+        log_string = 'chat_id={}, '\
+                     'message="{}", '\
+                     'button_list="{}"'.format(chat_id,
+                                               message,
+                                               str(button_list))
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.send_buttons.__name__,
+            log_string)
+        start_time = time.time()
+        # by default 1 column is used, if the ammount of lines exceeds
+        # 10, then two columns will be used.
+        columns = 1
+        if len(button_list) > 10:
+            columns = 2
+
+        # create the inline keyboard markup
+        markup = InlineKeyboardMarkup(inline_keyboard=self.general.build_menu(button_list, columns))
+
+        # if overwrite_keyboard_id is None, then a new keyboard is created
+        if overwrite_keyboard_id is None:
+            # first create a temporary object to send the inline keyboard
+            # this object is used to determine the msg_id
+            message_with_inline_keyboard = self.send_bot.sendMessage(
+                chat_id,
+                message,
+                reply_markup=markup
+            )
+            # now get the msg_id
+            msg_idf = telepot.message_identifier(message_with_inline_keyboard)
+
+            # register this keyboard in the database
+            query = "INSERT INTO telegram_inline_keyboard_messages "\
+                + "(chat_id, msg_id, message) "\
+                + "VALUES (?, ?, ?)"
+            values = [(chat_id, msg_idf[1], message)]
+            self.database.update_handler(query, values)
+
+        execution_time = time.time() - start_time
+        log_string = 'action="BMethod finished", '\
+                   + 'chat_id="{}", '\
+                   + 'msg_id="{}", '\
+                   + 'message="{}", '\
+                   + 'markup="{}", '\
+                   + 'execution_time="{}"'
+        log_string = log_string.format(
+            chat_id,
+            msg_idf,
+            message,
+            markup,
+            execution_time)
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.send_chat_message.__name__,
+            log_string
+        )
+

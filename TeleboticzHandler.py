@@ -25,7 +25,9 @@ import time
 from datetime import datetime
 from Database import Database
 from General import General
+from Domoticz import Domoticz
 from TeleboticzGeneral import TeleboticzGeneral
+from telepot.namedtuple import InlineKeyboardButton
 
 class TeleboticzHandler(object):
     """
@@ -34,6 +36,7 @@ class TeleboticzHandler(object):
     def __init__(self):
         self.database = Database()
         self.general = General()
+        self.domoticz = Domoticz()
         self.teleboticzgeneral = TeleboticzGeneral()
         return
 
@@ -169,4 +172,68 @@ class TeleboticzHandler(object):
             self.handle_chat_messages.__name__,
             log_string
         )
+        return
+
+    def handle_command_scenes(self, **kwargs):
+        """
+        Method to create and send the scenes to the telegram client
+        :param **kwargs: should contain the chat_id
+        """
+        log_string = 'action="Method called", kwargs="{}"'.format(
+            str(kwargs)
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.handle_command_scenes.__name__,
+            log_string
+        )
+        start_time = time.time()
+
+        # check if the chat_id is set
+        if 'chat_id' not in kwargs:
+            log_string = 'error="chat_id not found in arguments"'
+            self.general.logger(
+                1,
+                self.__class__.__name__,
+                self.handle_command_scenes.__name__,
+                log_string
+            )
+            # exit this method
+            return
+
+        chat_id = kwargs['chat_id']
+
+        # getting the latest status of the scenes
+        self.domoticz.get_domoticz_info()
+        if 'scenes' not in self.domoticz.domoticz_results:
+            message_to_send = self.general.translate_text('scenes_not_found')
+            self.teleboticzgeneral.send_chat_message(chat_id, message_to_send)
+            return
+
+        # create the options from the scene results
+        button_list = []
+        for idx in self.domoticz.domoticz_results['scenes']:
+            button_list.append(
+                InlineKeyboardButton(
+                    text=self.domoticz.domoticz_results['scenes'][idx]['name'],
+                    callback_data='action=load_actions;device_type=scene;idx=' + idx
+                )
+            )
+
+        message = self.general.translate_text('found_scenes')
+        # use the send_buttons method to send the buttons (doh)
+        self.teleboticzgeneral.send_buttons(chat_id, message, button_list)
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}"'.format(
+            execution_time,
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.handle_command_scenes.__name__,
+            log_string
+        )
+
         return
