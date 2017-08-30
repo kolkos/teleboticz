@@ -20,28 +20,23 @@ for ext in extensions:
         print "delete file: {}".format(file)
         os.unlink(file)
 
-# clean database junk
-query_callback_queries = "DELETE FROM telegram_callback_queries"
-query_received_chat_messages = "DELETE FROM telegram_chat_messages"
-query_inline_queries = "DELETE FROM telegram_inline_queries"
-query_send_chat_messages = "DELETE FROM telegram_send_messages"
-query_users = "DELETE FROM telegram_users"
+# clean database tables
+tables = []
+#tables.append('telegram_callback_queries')
+tables.append('telegram_chat_messages')
+tables.append('telegram_inline_queries')
+tables.append('telegram_send_messages')
+tables.append('telegram_users')
 
-queries = (
-    query_callback_queries,
-    query_received_chat_messages,
-    query_inline_queries,
-    query_send_chat_messages,
-    query_users
-)
-
-conn = sqlite3.connect('teleboticz.db')
+conn = sqlite3.connect('database/teleboticz.db')
 cursor = conn.cursor()
 
-for query in queries:
-    print "execute query: {}".format(query)
+for table in tables:
+    query = "DELETE FROM {}".format(table)
+    print "Executing query: '{}'"
     cursor.execute(query)
-    print "affected rows: {}".format(cursor.rowcount)
+    print "Affected rows: {}".format(cursor.rowcount)
+
 
 conn.commit()
 conn.close()

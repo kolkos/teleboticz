@@ -41,9 +41,9 @@ class General(object):
 
     def __init__(self):
         self.config = {}
-        self.config_file = self.fix_real_path('../Config/config.ini')
-        self.translation_file = self.fix_real_path('../Config/translation.ini')
-        self.log_file = self.fix_real_path(sys.argv[0] + ".log")
+        self.config_file = self.fix_real_path('../config/config.ini')
+        self.translation_file = self.fix_real_path('../config/translation.ini')
+        self.log_file = self.fix_real_path('../logs/teleboticz.log')
         self.load_config()
         self.load_translation()
 
@@ -61,6 +61,50 @@ class General(object):
             file_name
         )
         return real_path
+
+    def check_kwargs(self, keys_list, kwargs):
+        """
+        This method checks if the given keys are in the kwargs dictionary.
+        :param keys_list: list which contains the keys which are required for the
+                          method
+        :param kwargs: the kwargs arguments for the function
+        :return: True if check is successfull, else it will return False
+        """
+        self.logger(
+            3,
+            self.__class__.__name__,
+            self.check_kwargs.__name__,
+            'action="Method called"'
+        )
+        start_time = time.time()
+        result = True
+
+        # loop through the keys
+        for key in keys_list:
+            if key not in kwargs:
+                log_string = 'error="keyword {} not found in kwargs"'.format(
+                    key
+                )
+                self.logger(
+                    1,
+                    self.__class__.__name__,
+                    self.check_kwargs.__name__,
+                    log_string
+                )
+                result = False
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}", result="{}"'.format(
+            execution_time,
+            result
+        )
+        self.logger(
+            2,
+            self.__class__.__name__,
+            self.check_kwargs.__name__,
+            log_string
+        )
+        return result
 
     def load_config(self):
         """
@@ -116,7 +160,7 @@ class General(object):
             priority_text = priority_def[priority]
 
             # define the log string pattern
-            pattern = '{}, priority="{}", class="{}", method="{}", {}\n'
+            pattern = '{}, priority="{}", source="python", class="{}", method="{}", {}\n'
 
             # create the string to log
             log_string = pattern.format(

@@ -144,16 +144,8 @@ class TeleboticzHandler(object):
 
         # to work properly, this method needs a command
         # so check if the command parameter is given
-        if 'command' not in kwargs:
-            # command is not found
-            log_string = 'error="can\'t find the method parameter"'
-            self.general.logger(
-                1,
-                self.__class__.__name__,
-                self.determine_chat_method.__name__,
-                log_string
-            )
-            # exit this method
+        keys_list = ['command']
+        if not self.general.check_kwargs(keys_list, kwargs):
             return False
 
         # determine the correct chat method
@@ -191,18 +183,11 @@ class TeleboticzHandler(object):
         )
         start_time = time.time()
 
-        # check if the chat_id is set
-        if 'chat_id' not in kwargs:
-            log_string = 'error="chat_id not found in arguments"'
-            self.general.logger(
-                1,
-                self.__class__.__name__,
-                self.handle_command_scenes.__name__,
-                log_string
-            )
-            # exit this method
+        # check if the kwargs parameter contains all the required parameters
+        keys_list = ['chat_id']
+        if not self.general.check_kwargs(keys_list, kwargs):
             return
-
+        
         chat_id = kwargs['chat_id']
 
         # getting the latest status of the scenes
@@ -218,7 +203,7 @@ class TeleboticzHandler(object):
             button_list.append(
                 InlineKeyboardButton(
                     text=self.domoticz.domoticz_results['scenes'][idx]['name'],
-                    callback_data='method=load_actions;device_type=scene;idx=' + idx
+                    callback_data='method=load_actions;device_type=scenees;idx=' + idx
                 )
             )
 
@@ -255,16 +240,9 @@ class TeleboticzHandler(object):
         )
         start_time = time.time()
 
-        # check if the chat_id is set
-        if 'chat_id' not in kwargs:
-            log_string = 'error="chat_id not found in arguments"'
-            self.general.logger(
-                1,
-                self.__class__.__name__,
-                self.handle_command_switches.__name__,
-                log_string
-            )
-            # exit this method
+        # check if the kwargs parameter contains all the required parameters
+        keys_list = ['chat_id']
+        if not self.general.check_kwargs(keys_list, kwargs):
             return
 
         chat_id = kwargs['chat_id']
@@ -282,7 +260,7 @@ class TeleboticzHandler(object):
             button_list.append(
                 InlineKeyboardButton(
                     text=self.domoticz.domoticz_results['switches'][idx]['name'],
-                    callback_data='method=load_actions;device_type=switch;idx=' + idx
+                    callback_data='method=load_actions;device_type=switches;idx=' + idx
                 )
             )
 
@@ -317,7 +295,7 @@ class TeleboticzHandler(object):
         start_time = time.time()
 
         # get the callback queries from the database
-        query = "SELECT id, msg_id, user_id, data FROM telegram_callback_queries "\
+        query = "SELECT id, msg_id, user_id, data, query_id FROM telegram_callback_queries "\
               + "WHERE date_handled = 0 ORDER BY date_in ASC"
         results = self.database.select_handler(query)
 
@@ -327,11 +305,13 @@ class TeleboticzHandler(object):
             msg_id = row[1]
             user_id = row[2]
             data = row[3]
+            query_id = row[4]
 
             # add the ids to the kwargs dict
             kwargs = {}
             kwargs['msg_id'] = msg_id
             kwargs['user_id'] = user_id
+            kwargs['query_id'] = query_id
             
             # now split the data string to key/value pairs
             key_value_pairs = data.split(';')
@@ -343,5 +323,173 @@ class TeleboticzHandler(object):
             
             print json.dumps(kwargs, sort_keys=True, indent=4)
 
+            self.determine_callback_method(**kwargs)
+
+            # now update the handled chat message
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            query = "UPDATE telegram_callback_queries SET date_handled = ? WHERE id = ?"
+            values = [(timestamp, row_id)]
+            #self.database.update_handler(query, values)
+
+            log_string = 'action="command \'{}\' from \'{}\' handled"'.format(
+                data,
+                user_id
+            )
+            self.general.logger(
+                2,
+                self.__class__.__name__,
+                self.handle_command_switches.__name__,
+                log_string
+            )
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}"'.format(
+            execution_time,
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.handle_command_switches.__name__,
+            log_string
+        )
+        return
+
     def determine_callback_method(self, **kwargs):
+        """
+        This method is responsible for calling the right method based on the callback
+        query.
+        :param kwargs: parameters for this method in a key/value dict
+        :returns: returns the result from the callced action
+        """
+        def func_not_found(**kwargs):
+            """
+            If the method could not be found
+            :param kwargs: parameters for this method in a key/value dict
+            """
+            # log this action
+            log_string = 'result="method {} not found"'.format(kwargs['method'])
+            self.general.logger(
+                1,
+                self.__class__.__name__,
+                self.determine_callback_method.__name__,
+                log_string
+            )
+            # to send a message to the user, we need a chat_id
+            # if this is not found, we can't send the message
+            message_to_send = self.general.translate_text('unknown_command')
+            if 'user_id' in kwargs:
+                self.teleboticzgeneral.send_chat_message(str(kwargs['user_id']), message_to_send)
+
+            return False
+
+        log_string = 'action="Method called", kwargs="{}"'.format(
+            str(kwargs)
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.determine_chat_method.__name__,
+            log_string
+        )
+        start_time = time.time()
+
+        # to work properly, this method needs a command
+        # so check if the command parameter is given
+        
+        # check if all the required parameters are set in the kwargs
+        keys_list = ['method']
+
+        if not self.general.check_kwargs(keys_list, kwargs):
+            return False
+
+        # determine the correct chat method
+        method_name = 'handle_callback_' + kwargs['method']
+        func = getattr(self, method_name, func_not_found)
+        result = func(**kwargs)
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}", result="{}"'.format(
+            execution_time,
+            result
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.determine_callback_method.__name__,
+            log_string
+        )
+
+        return result
+
+    def handle_callback_load_actions(self, **kwargs):
+        """
+        This method handles the load_actions command. This command is used to load the possible
+        actions for the selected switch/scene/group.
+        :param kwargs: parameters for this method in a key/value dict
+        """
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.handle_callback_load_actions.__name__,
+            'action="Method called"'
+        )
+        start_time = time.time()
+
+        # check if all the required parameters are set in the kwargs
+        keys_list = ['device_type', 'idx', 'msg_id', 'user_id', 'query_id']
+        if not self.general.check_kwargs(keys_list, kwargs):
+            return
+
+        # update the result set
+        self.domoticz.get_domoticz_info()
+
+        # get the necessary information
+        try:
+            domoticz_type = self.domoticz.domoticz_results[kwargs['device_type']][kwargs['idx']]['type']
+            status = self.domoticz.domoticz_results[kwargs['device_type']][kwargs['idx']]['status']
+            name = self.domoticz.domoticz_results[kwargs['device_type']][kwargs['idx']]['name']
+        except KeyError as error:
+            message = self.general.translate_text('no_possible_actions')
+            self.teleboticzgeneral.answer_callback_query(kwargs['query_id'], message)
+            
+            log_string = 'error="{}", description="{}"'.format(
+                str(error),
+                "device_type not found")
+            self.general.logger(
+                1,
+                self.__class__.__name__,
+                self.handle_callback_load_actions.__name__,
+                log_string)
+            return
+
+        # get the possible commands for this device type
+        try:
+            possible_commands_array = \
+                self.general.configuration['ACTIONS'][domoticz_type].split(',')
+        except KeyError as error:
+            self.bot.answerCallbackQuery(
+                query_id,
+                text=self.general.translate_text('no_possible_actions'))
+            log_string = 'error="{}", description="{}"'.format(
+                str(error),
+                "No actions defined in the config file for this device type")
+            self.general.write_to_log(
+                1,
+                self.__class__.__name__,
+                self.load_actions.__name__,
+                log_string)
+            return
+
+
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}"'.format(
+            execution_time,
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.handle_callback_load_actions.__name__,
+            log_string
+        )
         return

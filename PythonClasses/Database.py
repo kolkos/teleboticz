@@ -37,7 +37,7 @@ class Database(object):
     """
     def __init__(self):
         self.general = General()
-        self.database = self.general.fix_real_path('../teleboticz.db')
+        self.database = self.general.fix_real_path('../database/teleboticz.db')
         self.conn = None
         self.cursor = None
 

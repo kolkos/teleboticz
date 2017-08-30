@@ -10,13 +10,14 @@ VALUES
 
 """
 
-from Domoticz import Domoticz
+from PythonClasses.Domoticz import Domoticz
 import json
 
 
 domoticz = Domoticz()
 
 #domoticz.get_domoticz_info()
+
 
 #print json.dumps(domoticz.domoticz_call_config, sort_keys=True, indent=4)
 

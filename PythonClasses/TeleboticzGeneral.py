@@ -209,3 +209,30 @@ class TeleboticzGeneral(object):
             log_string
         )
 
+    def answer_callback_query(self, query_id, message):
+        """
+        General method to answer a callback query. This isn't a chat message but
+        a message in the form of a onscreen notification
+        """
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.answer_callback_query.__name__,
+            'action="Method called", query_id="{}", message="{}"'.format(
+                query_id,
+                message)
+        )
+        start_time = time.time()
+
+        self.send_bot.answerCallbackQuery(query_id, message)
+
+        execution_time = time.time() - start_time
+        log_string = 'action="Method finished", execution_time="{}"'.format(
+            execution_time
+        )
+        self.general.logger(
+            3,
+            self.__class__.__name__,
+            self.answer_callback_query.__name__,
+            log_string
+        )
