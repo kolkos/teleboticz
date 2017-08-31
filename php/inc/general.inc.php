@@ -6,7 +6,7 @@
         public $navigation;
 
         public function __construct() {
-		    $this->config = parse_ini_file("config/config.ini", true);
+		    $this->config = parse_ini_file(realpath("config/config.ini"), true);
             $this->declare_navigation();
         }
 
@@ -40,6 +40,12 @@
         }
 
         public function build_menu($current_page){
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['action'] = "Method called";
+            $this->logger(3, $key_value_array);
+
             $menu = "<ul>";
             # loop through the navigation items
             foreach($this->navigation as $key => $value){
@@ -50,12 +56,51 @@
                 $menu .= "<li><a " . $class . " href='?page=" . $key . "'>" . $key . "</a></li>";
             }
             $menu .= "</ul>";
+
+            $time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
+            
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['result'] = "Method finished";
+            $key_value_array['execution_time'] = $time;
+
+            $this->logger(3, $key_value_array);
+
             return $menu;
+        }
+
+        public function pageSwitcher($page) {
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['action'] = "Method called";
+            $key_value_array['page'] = $page;
+            $this->logger(3, $key_value_array);
+            
+            // display page title
+            echo "<h1>" . $this->navigation[$page]['title'] . "</h1>";
+            
+            // get the required file
+            $file = $this->navigation[$page]['file'];
+            
+            $time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
+
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['result'] = "Method finished";
+            $key_value_array['file'] = $file;
+            $key_value_array['execution_time'] = $time;
+
+            $this->logger(3, $key_value_array);
+
+            require_once $file;
         }
 
         public function get_log_contents($offset=-1){
 
-            $logfile = '../logs/teleboticz.log';
+            $logfile = realpath('../logs/teleboticz.log');
             $handle = fopen($logfile, 'r');
             
             $data = stream_get_contents($handle, -1, $offset);
@@ -126,7 +171,7 @@
         }
 
         public function logger($priority, $key_value_array){
-            $logfile = 'logs/teleboticz.log';
+            $logfile = realpath('logs/teleboticz.log');
             
             # check if the line is important enough to log
             if ($priority <= $this->config['Teleboticz']['log_level']) {

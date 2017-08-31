@@ -1,4 +1,3 @@
-<h1>Log</h1>
 <div id="log">Loading log file...<log>
 <script>
     $(function() {

@@ -1,5 +1,6 @@
 @CHARSET "UTF-8";
 @IMPORT url("menu.css");
+@IMPORT url("results.css");
 body{
     font-family: 'Raleway', sans-serif;
     color: #212121;

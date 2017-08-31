@@ -20,7 +20,7 @@
             </nav>
             <article class="article">
                 <?php
-                    require_once 'php/log.php';
+                    require_once 'php/page_switcher.php';
                 ?>    
             </article>
             <footer>Copyright &copy; kolkos.nl</footer>

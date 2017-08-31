@@ -1,0 +1,20 @@
+table.results{
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+
+}
+table.results thead{
+    font-weight: bold;
+}
+table.results thead tr td{
+    background-color: #689F38;
+    color: #DCEDC8; 
+    padding: 3px;
+}
+table.results tbody tr:nth-child(odd) td{
+    background-color: #DCEDC8;
+}
+table.results tbody tr:hover td{
+    background-color: #8BC34A;
+}
