@@ -6,7 +6,7 @@
         public $navigation;
 
         public function __construct() {
-		    $this->config = parse_ini_file(realpath("config/config.ini"), true);
+		    $this->config = parse_ini_file(realpath($_SERVER['DOCUMENT_ROOT'] . "/config/config.ini"), true);
             $this->declare_navigation();
         }
 
@@ -100,7 +100,7 @@
 
         public function get_log_contents($offset=-1){
 
-            $logfile = realpath('../logs/teleboticz.log');
+            $logfile = realpath($_SERVER['DOCUMENT_ROOT'] . '/logs/teleboticz.log');
             $handle = fopen($logfile, 'r');
             
             $data = stream_get_contents($handle, -1, $offset);
@@ -171,7 +171,7 @@
         }
 
         public function logger($priority, $key_value_array){
-            $logfile = realpath('logs/teleboticz.log');
+            $logfile = realpath($_SERVER['DOCUMENT_ROOT'] . '/logs/teleboticz.log');
             
             # check if the line is important enough to log
             if ($priority <= $this->config['Teleboticz']['log_level']) {

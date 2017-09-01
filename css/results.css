@@ -18,3 +18,6 @@ table.results tbody tr:nth-child(odd) td{
 table.results tbody tr:hover td{
     background-color: #8BC34A;
 }
+table.results tbody tr td a img{
+    width: 25px;
+}

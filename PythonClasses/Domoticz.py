@@ -114,7 +114,7 @@ class Domoticz(object):
         )
         start_time = time.time()
 
-        query = "SELECT type, idx FROM domoticz_excluded_items ORDER BY type ASC"
+        query = "SELECT domoticz_device_types.name, domoticz_excluded_items.idx FROM domoticz_device_types, domoticz_excluded_items WHERE domoticz_device_types.id = domoticz_excluded_items.domoticz_device_type_id ORDER BY domoticz_device_type_id ASC"
         results = self.database.select_handler(query)
         # loop through the results
         for row in results:
@@ -201,7 +201,7 @@ class Domoticz(object):
         start_time = time.time()
 
         # load the configuration from the database
-        query = "SELECT device_type, section, key, value FROM domoticz_call_config"
+        query = "SELECT domoticz_device_types.name, domoticz_call_config.section, domoticz_call_config.key, domoticz_call_config.value FROM domoticz_device_types, domoticz_call_config WHERE domoticz_device_types.id = domoticz_call_config.domoticz_device_type_id"
         results = self.database.select_handler(query)
 
         # loop through the results and append them to the global dictionary
