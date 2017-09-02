@@ -1,8 +1,10 @@
 @CHARSET "UTF-8";
 @IMPORT url("menu.css");
 @IMPORT url("results.css");
+@IMPORT url("form.css");
 body{
     font-family: 'Raleway', sans-serif;
+    font-size: 11pt;
     color: #212121;
 }
 .flex-container {
@@ -55,5 +57,5 @@ footer {
     padding: 2px;
 }
 h2{
-    font-size: 120%;
+    font-size: 130%;
 }

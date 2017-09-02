@@ -41,12 +41,19 @@
         }
 
         public function prepareStatementSelect($q, $a_parameters = null) {
+            // fix query for logging purposes
+            $q_for_log = preg_replace( "/\r|\n/", "", $q);
+            $q_for_log = preg_replace( "/\s{2,}/", " ", $q_for_log);
+            
             $key_value_array = array();
             $key_value_array['class'] = __CLASS__;
             $key_value_array['method'] = __METHOD__;
             $key_value_array['action'] = "Method called";
-            $key_value_array['query'] = preg_replace( "/\r|\n/", "", $q);
+            $key_value_array['query'] = $q_for_log;
             $this->general->logger(3, $key_value_array);
+
+            //print "<p>" . $q . "</p>";
+            //print_r($a_parameters);
 
             // ------------ Run Query -----------------
             try {
@@ -63,6 +70,9 @@
                 $stmt->execute ();
                 
                 $row = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $stmt->debugDumpParams();
+                print_r($a_parameters);
                 
                 if (! empty ( $row )) {
                     $key_value_array = array();
@@ -76,7 +86,7 @@
                     $key_value_array['class'] = __CLASS__;
                     $key_value_array['method'] = __METHOD__;
                     $key_value_array['result'] = "No results found";
-                    $this->general->logger(2, $key_value_array);
+                    $this->general->logger(1, $key_value_array);
                     return false;
                 }
             } catch ( PDOException $e ) {
@@ -90,7 +100,7 @@
             }
         }
 
-        public function prepare_results_table($fields, $form_id, $table_id){
+        public function prepare_results_table($fields, $form_id, $table_id, $filter_class){
             /*
             Requires an array of arrays
             'Title for table'
@@ -114,7 +124,11 @@
             $html .= "<tr>";
             // now loop the fields
             foreach($fields as $key => $value){
-                $html .= "<td>" . $key . "</td>";
+                $width_string = "";
+                if(isset($value['width'])){
+                    $width_string = " width='" . $value['width'] . "' ";
+                }
+                $html .= sprintf("<td %s>" . $key . "</td>", $width_string);
             }
             
             $html .= "</tr>";
@@ -123,7 +137,7 @@
             $html .= "<tr>";
             foreach($fields as $key => $value){
                 if($value['filter']){
-                    $html .= "<td><input type='text' name='" . $value['column'] . "' class='result-filter domoticz_call_config'/></td>";
+                    $html .= "<td><input type='text' name='" . $value['column'] . "' class='result-filter " . $filter_class . "'/></td>";
                 }else{
                     $html .= "<td>&nbsp;</td>";
                 }
@@ -156,7 +170,10 @@
             $key_value_array['action'] = "Method called";
             $this->general->logger(3, $key_value_array);
 
-
+            if(!$results){
+                $html = "<tr><td colspan='" . count($fields) . "'>No results found</td></tr>";
+                return $html;
+            }
             // run the query and handle the results
             $html = "";
             foreach($results as $row){
@@ -211,6 +228,30 @@
             return $fields_string;
         }
 
+        public function create_jquery_filter_script($filter_class, $form_id, $table_id, $file){
+            $html  = "<script>\n";
+            $html .= "
+                var delay = (function(){
+                    var timer = 0;
+                    return function(callback, ms){
+                        clearTimeout (timer);
+                        timer = setTimeout(callback, ms);
+                    };
+                })();\n";
+            $html .= "$('." . $filter_class . "').keyup(function() {\n";
+            $html .= "  delay(function(){\n";
+            $html .= "    var source = '" . $form_id . "';\n";
+            $html .= "    var file = '" . $file . "';\n";
+            $html .= "    var target = '#" . $table_id . " > tbody';\n";
+            $html .= "    sendFormSimple(source, file, target);\n";
+            $html .= "  }, 1000 );\n";
+            $html .= "});\n";
+            $html .= "</script>\n";
+
+            return $html;
+
+        }
+
         public function prepare_query_domoticz_call_config($post){
             $key_value_array = array();
             $key_value_array['class'] = __CLASS__;
@@ -230,6 +271,7 @@
                     'type' => "icon",
                     'icon' => "img/edit.png",
                     'function' => "edit_domoticz_call_config_device",
+                    'width' => '100px',
                     'filter' => FALSE
                 ),
                 'Delete' => array(
@@ -237,6 +279,7 @@
                     'type' => "icon",
                     'icon' => "img/trash.png",
                     'function' => "delete_domoticz_call_config_device",
+                    'width' => '100px',
                     'filter' => FALSE
                 ),
             );
@@ -267,6 +310,8 @@
             $results['a_params'] = $a_params;
             $results['form_id'] = "domoticz_call_config_form";
             $results['table_id'] = "domoticz_call_config_table";
+            $results['filter_class'] = "domoticz_call_config_filter";
+            $results['results_file'] = "php/domoticz_call_config_results.php";
 
             $time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
             $key_value_array = array();
@@ -292,7 +337,7 @@
                 'ID' => array(
                     'column' => "id",
                     'type' => "text",
-                    'filter' => TRUE
+                    'filter' => FALSE
                 ),
                 'Name' => array(
                     'column' => "name",
@@ -309,6 +354,7 @@
                     'type' => "icon",
                     'icon' => "img/edit.png",
                     'function' => "edit_domoticz_device_type",
+                    'width' => '100px',
                     'filter' => FALSE
                 ),
                 'Delete' => array(
@@ -316,6 +362,7 @@
                     'type' => "icon",
                     'icon' => "img/trash.png",
                     'function' => "delete_domoticz_device_type",
+                    'width' => '100px',
                     'filter' => FALSE
                 ),
             );
@@ -324,15 +371,10 @@
             
             if(!empty($post)){
                 $q = sprintf("SELECT %s FROM domoticz_device_types
-                        WHERE id LIKE :id
-                        AND name LIKE :name
+                        WHERE name LIKE :name
                         AND description LIKE :description
                         ORDER BY name ASC;", $fields_string);
                 $a_params = array(
-                    ':id' => array(
-                        'value' => $post['id'] . "%",
-                        'type' => PDO::PARAM_INT
-                    ),
                     ':name' => array(
                         'value' => $post['name'] . "%",
                         'type' => PDO::PARAM_STR
@@ -353,6 +395,8 @@
             $results['a_params'] = $a_params;
             $results['form_id'] = "domoticz_device_types_form";
             $results['table_id'] = "domoticz_device_types_table";
+            $results['filter_class'] = "domoticz_device_type_filter";
+            $results['results_file'] = "php/domoticz_device_types_results.php";
 
             $time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
             $key_value_array = array();
@@ -366,5 +410,95 @@
             return $results;
         }
 
+        public function prepare_query_domoticz_excluded_items($post){
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['action'] = "Method called";
+            $this->general->logger(3, $key_value_array);
+
+            // first prepare the fields
+            $fields = array(
+                'ID' => array(
+                    'column' => "domoticz_excluded_items.id",
+                    'type' => "text",
+                    'filter' => FALSE
+                ),
+                'Device type' => array(
+                    'column' => "domoticz_device_types.name",
+                    'type' => "text",
+                    'filter' => TRUE
+                ),
+                'IDX' => array(
+                    'column' => "domoticz_excluded_items.idx",
+                    'type' => "text",
+                    'filter' => FALSE
+                ),
+                'Description' => array(
+                    'column' => "domoticz_excluded_items.description",
+                    'type' => "text",
+                    'filter' => TRUE
+                ),
+                'Edit' => array(
+                    'column' => "domoticz_excluded_items.id",
+                    'type' => "icon",
+                    'icon' => "img/edit.png",
+                    'function' => "edit_domoticz_device_type",
+                    'width' => '100px',
+                    'filter' => FALSE
+                ),
+                'Delete' => array(
+                    'column' => "domoticz_excluded_items.id",
+                    'type' => "icon",
+                    'icon' => "img/trash.png",
+                    'function' => "delete_domoticz_device_type",
+                    'width' => '100px',
+                    'filter' => FALSE
+                ),
+            );
+            // prepare the fields in the query
+            $fields_string = $this->convert_fields_to_query_fields_string($fields);
+            
+            if(!empty($post)){
+                $q = sprintf("SELECT %s FROM domoticz_device_types, domoticz_excluded_items
+                        WHERE domoticz_excluded_items.domoticz_device_type_id = domoticz_device_types.id
+                        AND domoticz_device_types.name LIKE :name
+                        AND domoticz_excluded_items.description LIKE :description
+                        ORDER BY name ASC;", $fields_string);
+                $a_params = array(
+                    ':name' => array(
+                        'value' => $post['domoticz_device_types_name'] . "%",
+                        'type' => PDO::PARAM_STR
+                    ),
+                    ':description' => array(
+                        'value' => $post['domoticz_excluded_items_description'] . "%",
+                        'type' => PDO::PARAM_STR
+                    ),
+                );
+            }else{
+                $q = sprintf("SELECT %s FROM domoticz_device_types, domoticz_excluded_items WHERE domoticz_excluded_items.domoticz_device_type_id = domoticz_device_types.id ORDER BY name ASC;", $fields_string);
+                $a_params = array();
+            }
+
+            // now add the prepared values to an array
+            $results['fields'] = $fields;
+            $results['query'] = $q;
+            $results['a_params'] = $a_params;
+            $results['form_id'] = "domoticz_excluded_items_form";
+            $results['table_id'] = "domoticz_excluded_items_table";
+            $results['filter_class'] = "domoticz_excluded_items_filter";
+            $results['results_file'] = "php/domoticz_excluded_items_results.php";
+
+            $time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['result'] = "Method finished";
+            $key_value_array['execution_time'] = $time;
+
+            $this->general->logger(3, $key_value_array);
+
+            return $results;
+        }
     }
 ?>

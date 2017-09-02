@@ -12,8 +12,18 @@ table.results thead tr td{
     color: #DCEDC8; 
     padding: 3px;
 }
+table.results thead tr td input.result-filter{
+    background-color: #DCEDC8;
+    width: 200px;
+    padding: 5px;
+    border: 1px solid #8BC34A;
+    outline: none;
+}
 table.results tbody tr:nth-child(odd) td{
     background-color: #DCEDC8;
+}
+table.results tbody tr td{
+    padding-left: 4px;
 }
 table.results tbody tr:hover td{
     background-color: #8BC34A;

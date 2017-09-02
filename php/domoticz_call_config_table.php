@@ -1,27 +1,18 @@
 <h2>Domoticz call config</h2>
-
+<p>This table shows the configuration per dervice type. This table contains data necessary for:</p>
+<ul>
+    <li>The API call to Domoticz</li>
+    <li>The required fields from the API respons</li>
+    <li>Icon for the status message</li>
+    <li>The fields in the status message</li>
+</ul>
+<p>
+    <button type="button" id="add_config_call_item">Add call config element</button>
+</p>
 <?php
     require_once 'inc/database.inc.php';
     $db = new Database();
     $results = $db->prepare_query_domoticz_call_config($_POST);
-    echo $db->prepare_results_table($results['fields'], $results['form_id'], $results['table_id']);
+    echo $db->prepare_results_table($results['fields'], $results['form_id'], $results['table_id'], $results['filter_class']);
+    echo $db->create_jquery_filter_script($results['filter_class'], $results['form_id'], $results['table_id'], $results['results_file']);
 ?>
-<script>
-    // when changing the domoticz_call_config fields
-    var delay = (function(){
-        var timer = 0;
-        return function(callback, ms){
-            clearTimeout (timer);
-            timer = setTimeout(callback, ms);
-        };
-    })();
-
-    $('.domoticz_call_config').keyup(function() {
-        delay(function(){
-            var source = 'domoticz_call_config_form';
-            var file = 'php/domoticz_call_config_results.php';
-            var target = '#domoticz_call_config_table > tbody';
-            sendFormSimple(source, file, target);
-        }, 1000 );
-    });
-</script>

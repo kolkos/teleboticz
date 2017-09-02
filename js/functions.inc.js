@@ -37,3 +37,26 @@ function sendFormSimple(source, file, target){
 		}
 	});
 }
+function openOverlayWindow(margin,source,parameters){
+	// fade in bg
+	$('#overlayBG').fadeIn('fast');
+	$('#overlayWindow').fadeIn('fast');
+	$('#overlayWindow').css({
+		"left" : margin + "px",
+		"right" : margin + "px"
+	});
+	
+	$('#overlayWindow').html('Laden...');
+	
+	
+	$.ajax({
+		type: "POST",
+		url: source,
+		data: 'parameters=' + parameters,
+		success: function(html){
+			$('#overlayWindow').html(html);
+		}
+	});
+	
+	
+}
