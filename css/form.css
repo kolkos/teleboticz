@@ -8,3 +8,37 @@ button:hover{
     background-color: #8BC34A;
     cursor: pointer;
 }
+table.form{
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background: #fff;
+}
+table.form tr td{
+    vertical-align: top;
+}
+table.form thead tr td{
+    font-weight: bold;
+    background-color: #689F38;
+    color: #DCEDC8; 
+    padding: 3px;
+}
+table.form tbody tr td{
+    font-weight: bold;
+    padding-left: 4px;
+}
+table.form tbody tr td input{
+    background-color: #DCEDC8;
+    width: 300px;
+    padding: 5px;
+    border: 1px solid #689F38;
+    outline: none;
+}
+table.form tbody tr td textarea{
+    background-color: #DCEDC8;
+    width: 300px;
+    padding: 5px;
+    border: 1px solid #689F38;
+    outline: none;
+    height: 75px;
+}

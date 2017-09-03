@@ -23,10 +23,10 @@ for ext in extensions:
 # clean database tables
 tables = []
 #tables.append('telegram_callback_queries')
-tables.append('telegram_chat_messages')
-tables.append('telegram_inline_queries')
-tables.append('telegram_send_messages')
-tables.append('telegram_users')
+#tables.append('telegram_chat_messages')
+#tables.append('telegram_inline_queries')
+#tables.append('telegram_send_messages')
+#tables.append('telegram_users')
 
 conn = sqlite3.connect('database/teleboticz.db')
 cursor = conn.cursor()

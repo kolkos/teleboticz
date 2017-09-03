@@ -47,8 +47,7 @@ function openOverlayWindow(margin,source,parameters){
 	});
 	
 	$('#overlayWindow').html('Laden...');
-	
-	
+	window.scrollTo(0, 0);
 	$.ajax({
 		type: "POST",
 		url: source,
@@ -57,6 +56,4 @@ function openOverlayWindow(margin,source,parameters){
 			$('#overlayWindow').html(html);
 		}
 	});
-	
-	
 }

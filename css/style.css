@@ -59,3 +59,22 @@ footer {
 h2{
     font-size: 130%;
 }
+#overlayBG{
+	z-index: 50;
+	background: rgba(0, 0, 0, 0.85);
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+}
+
+#overlayWindow{
+	margin: auto;
+	position: absolute;
+	top: 50px; 
+	background-color: #e9eef4;
+	color: #333;
+	z-index:99;
+	padding: 10px;	
+}

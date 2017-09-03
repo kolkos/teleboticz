@@ -5,10 +5,12 @@
         <title>Teleboticz</title>
         <link rel="stylesheet" href="css/style.css">
         <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
-        <script src="js/functions.inc.js"></script>
         <script src="js/jquery-3.2.1.min.js"></script>
+        <script src="js/functions.inc.js"></script>
     </head>
     <body>
+        <div id="overlayBG" class="overlayBG" style="display: none;"></div>
+        <div id="overlayWindow" class="overlayWindow" style="display: none;"></div>
         <div class="flex-container">
             <header>
                 <h1>Teleboticz</h1>
@@ -25,7 +27,12 @@
             </article>
             <footer>Copyright &copy; kolkos.nl</footer>
         </div>
-        
+        <script>
+            $('#overlayBG').click(function(){
+                $('#overlayBG').fadeOut('fast');
+                $('#overlayWindow').fadeOut('fast');
+            });
+        </script>
     </body>
 </html>
 
