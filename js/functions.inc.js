@@ -57,3 +57,22 @@ function openOverlayWindow(margin,source,parameters){
 		}
 	});
 }
+function checkRequiredFields(formID){
+	var check_ok = true;
+	//$(formID + '> .required').each(function(){
+	//$(formID).children('.required').each(function () {
+	$(formID).find('.required').each(function(){
+		$(this).removeClass('invalid');
+		if($(this).val() == ""){
+			check_ok = false;
+			$(this).addClass('invalid');
+		}
+	})
+	return check_ok;
+}
+function formHandledSuccesfully(){
+	$('#overlayBG').fadeOut();
+	$('#overlayWindow').fadeOut();
+	
+	
+}

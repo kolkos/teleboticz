@@ -42,3 +42,7 @@ table.form tbody tr td textarea{
     outline: none;
     height: 75px;
 }
+.invalid{
+	background-color: #f44336 !important;
+	color: #f1f1f1;
+}

@@ -2,6 +2,7 @@
 @IMPORT url("menu.css");
 @IMPORT url("results.css");
 @IMPORT url("form.css");
+@IMPORT url("alerts.css");
 body{
     font-family: 'Raleway', sans-serif;
     font-size: 11pt;

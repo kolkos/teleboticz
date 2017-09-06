@@ -2,15 +2,16 @@
     require_once 'inc/site.inc.php';
     $site = new Site();
 
-    $form_id = "domooticz_device_type_add_form";
+    $form_name = "domoticz_device_type_add";
     $title = "Add device type";
-    $button_id = "domooticz_device_type_add_button";
+    $file = "php/domoticz_device_types_add_handler.php";
 
 
     $form_elements = array(
         array(
             'id' => 'device_type_name',
             'name' => 'device_type_name',
+            'required' => TRUE,
             'type' => 'text',
             'label' => 'Name'
         ),
@@ -22,5 +23,5 @@
         ),
     );
 
-    echo $site->create_form($form_id, $title, $button_id, $form_elements);
+    echo $site->create_form($form_name, $title, $form_elements, $file);
 ?>

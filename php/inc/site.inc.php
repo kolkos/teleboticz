@@ -195,7 +195,7 @@
 
         }
 
-        public function create_form($form_id, $title, $button_id, $form_elements){
+        public function create_form($form_name, $title, $form_elements, $file){
             /*
             array
                 array
@@ -206,7 +206,25 @@
                     'value' => if set, this field will contain the value of this field
                     'options' => if type is select, this item contains the options, seperated by a comma (,)
             */
-            $html  = "<form id='" . $form_id . "'>\n";
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['action'] = "Method called";
+            $key_value_array['form_name'] = $form_name;
+            $key_value_array['title'] = $title;
+            $key_value_array['file'] = $file;
+            $this->general->logger(3, $key_value_array);
+            
+            
+            
+            $form_id   = $form_name . "_form";
+            $button_id = $form_name . "_button";
+            $result_id = $form_name . "_result";
+            
+            // first create the div for the response
+            $html  = "<div id='" . $result_id . "'></div>";
+            // now create the form
+            $html .= "<form id='" . $form_id . "'>\n";
             $html .= "<table class='form'>\n";
             $html .= "<thead>\n";
             $html .= "<tr><td colspan='2'>" . $title . "</td></tr>\n";
@@ -224,24 +242,32 @@
                 switch($form_row['type']){
                     case 'text':
                     case 'pass':
-                        $html_buffer = "<input type='" . $form_row['type'] . "' id='" . $form_row['id'] . "' name='" . $form_row['name'] . "' %s/>";
+                        $html_buffer = "<input type='" . $form_row['type'] . "' id='" . $form_row['id'] . "' name='" . $form_row['name'] . "' %s %s/>";
                         $value = "";
                         if(isset($form_row['value'])){
                             $value = "value='" . $form_row['value'] . "'";
                         }
-                        $html .= sprintf($html_buffer, $value);
+                        $required = "";
+                        if(isset($form_row['required'])){
+                            $required = "class='required'";
+                        }
+                        
                         break;
                     case 'textarea':
-                        $html_buffer = "<textarea id='" . $form_row['id'] . "' name='" . $form_row['name'] . "'>%s</textarea>";
+                        $html_buffer = "<textarea id='" . $form_row['id'] . "' name='" . $form_row['name'] . "' %s>%s</textarea>";
                         $value = "";
                         if(isset($form_row['value'])){
                             $value = $form_row['value'];
                         }
-                        $html .= sprintf($html_buffer, $value);
+                        $required = "";
+                        if(isset($form_row['required'])){
+                            $required = "class='required'";
+                        }
                         break;
                 }
 
-
+                $html .= sprintf($html_buffer, $value, $required);
+                
                 $html .= "</td>";
                 // end row
                 $html .= "</tr>";
@@ -253,11 +279,90 @@
             $html .= "</tbody>\n";
             $html .= "</table>\n";
             $html .= "</form>\n";
+            
+            // now create the jQuery script to handle the form
+            $html .= "<script>\n";
+            $html .= "$('#" . $button_id . "').click(function(){\n";
+            $html .= "  var check = checkRequiredFields('#" . $form_id . "');\n";
+            $html .= "  if(check){\n";
+            $html .= "    console.log('check ok');";
+            $html .= "    var source = '" . $form_id . "';";
+            $html .= "    var file = '" . $file . "';";
+            $html .= "    var target = '#" . $result_id . "';";
+            $html .= "    sendFormSimple(source, file, target);\n";
+            $html .= "  }\n";
+            $html .= "});\n";
+            $html .= "</script>\n";
+            
 
+            $time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['result'] = "Method finished";
+            $key_value_array['execution_time'] = $time;
+            $this->general->logger(3, $key_value_array);
+            
             return $html;
 
         }
-
+        
+        public function handle_form_simple($query, $a_parameters, $results_file, $results_target_id){
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['action'] = "Method called";
+            $key_value_array['query'] = $query;
+            $this->general->logger(3, $key_value_array);
+            
+            $result = $this->database->prepareStatementDo($query, $a_parameters);
+            
+            $html  = "<div class='alert %s'>\n";
+            $html .= "<table>\n";
+            $html .= "<tr>\n";
+            $html .= "<td><img class='statusIcon' src='%s'/></td>\n";
+            $html .= "<td>%s</td>\n";
+            $html .= "</tr>\n";
+            $html .= "</table>\n";
+            $html .= "</div>\n";
+            
+            // now create the script to fade out the form
+            // and reload the results
+            $html .= "<script>";
+            $html .= "  $(function() {\n";
+            $html .= "    var source='%s';\n";
+            $html .= "    var target='%s';\n";
+            $html .= "    setTimeout(function(){\n";
+            $html .= "      loadPageSimple(source, target);\n";
+            $html .= "      $('#overlayBG').fadeOut();\n";
+            $html .= "      $('#overlayWindow').fadeOut();\n";
+            $html .= "    }, 5000);\n";
+            $html .= "  });\n";
+            $html .= "</script>\n";
+            
+            if($result){
+                $class = "success";
+                $message = "Task executed successfully.";
+                $img = "img/success.png";
+            }else{
+                $class = "error";
+                $message = $result;
+                $img = "img/multiply.png";
+            }
+            
+            $html = sprintf($html, $class, $img, $message, $results_file, $results_target_id);
+            
+            $time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
+            $key_value_array = array();
+            $key_value_array['class'] = __CLASS__;
+            $key_value_array['method'] = __METHOD__;
+            $key_value_array['result'] = "Method finished";
+            $key_value_array['execution_time'] = $time;
+            $this->general->logger(3, $key_value_array);
+            
+            return $html;
+        }
+        
         public function prepare_query_domoticz_call_config($post){
             $key_value_array = array();
             $key_value_array['class'] = __CLASS__;
@@ -505,6 +610,10 @@
             $this->general->logger(3, $key_value_array);
 
             return $results;
+        }
+        
+        public function domoticz_device_type_add_handler($post){
+            
         }
     }
 ?>
