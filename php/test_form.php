@@ -1,5 +1,5 @@
 <?php
-    require_once 'inc/site.inc.php';
+    require_once 'inc/config.inc.php';
     $site = new Site();
 
     $form_elements = array(

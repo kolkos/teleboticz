@@ -1,4 +1,5 @@
-<div id="log">Loading log file...<log>
+<div id="log">Loading log file...</div>
+<p><a href="logs/teleboticz.log" target="_blank">Download log file</a></p>
 <script>
     $(function() {
         load_logfile();

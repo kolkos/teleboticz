@@ -1,6 +1,6 @@
 <?php 
-    require_once 'inc/site.inc.php';
-    $site = new Site();
+    require_once 'inc/config.inc.php';
+    $site = new Config();
     
     $results_config = $site->prepare_query_domoticz_device_types(null);
     

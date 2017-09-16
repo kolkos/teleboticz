@@ -10,8 +10,8 @@
     <button type="button" id="add_config_call_item">Add call config element</button>
 </p>
 <?php
-    require_once 'inc/site.inc.php';
-    $site = new Site();
+    require_once 'inc/config.inc.php';
+    $site = new Config();
     $results = $site->prepare_query_domoticz_call_config($_POST);
     echo $site->prepare_results_table($results['fields'], $results['form_id'], $results['table_id'], $results['filter_class']);
     echo $site->create_jquery_filter_script($results['filter_class'], $results['form_id'], $results['table_id'], $results['results_file']);

@@ -1,6 +1,6 @@
 <?php
-    require_once 'inc/site.inc.php';
-    $site = new Site();
+    require_once 'inc/config.inc.php';
+    $site = new Config();
 
     $form_name = "domoticz_device_type_add";
     $title = "Add device type";
